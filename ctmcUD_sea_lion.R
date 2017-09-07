@@ -28,7 +28,7 @@ ssl_data = full_join(ssl_data, dat_toproj, by=c("Deploy_ID", "GMT"))
 ###################################
 # Fit CTMC UD to first animal    ##
 ###################################
-temp_dat <- dplyr::filter(ssl_data, Deploy_ID==15137) %>% arrange(GMT) #pull out one sea lion
+temp_dat <- dplyr::filter(ssl_data, Deploy_ID==14809) %>% arrange(GMT) #pull out one sea lion
 
 #set Argos error & add a constraint parameter for estimating Argos error
 # in CTCRW imputation model
@@ -105,7 +105,8 @@ for(i in 1:P){
   message(nrow(glm_data))
 } 
 
- write.csv(glm_data,'glm.data_SSL-15137.csv',row.names=FALSE)
+# save glm_data
+ write.csv(glm_data,'glm.data_SSL-14809.csv',row.names=FALSE)
 
 #fit GLM
 fit <- glm(z~bathy_grad+slope_grad+d2site_grad+d2shelf_grad+

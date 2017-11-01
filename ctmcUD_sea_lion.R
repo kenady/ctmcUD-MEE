@@ -16,7 +16,7 @@ ssl_data <- readr::read_csv("sea_lion_telemetry.csv") %>% mutate(GMT=mdy_hm(GMT)
 aleut_hab <- brick("habitat/aleut_habitat.grd", values=TRUE) %>% stack()   # habitat covariates
 land <- 1.0*(aleut_hab$bathy>=0)
 
-# Project data telemetry data
+# Project telemetry data
 dat_toproj <- filter(ssl_data, !is.na(latitude))
 coordinates(dat_toproj) <- ~longitude+latitude
 proj4string(dat_toproj) <- CRS("+proj=longlat")
@@ -54,7 +54,7 @@ constr = list(lower=c(rep(log(1500),3),rep(-Inf,2)), upper=rep(Inf,5))
 crawl::displayPar( mov.model=~1, err.model=list(x=~argos_class-1),data=temp_dat,
             activity=~I(1-DryTime),fixPar=fixPar) #with dry time
 
-# 3) Run crawl model with dry (haul-out/activity) data
+# 2) Run crawl model (Fit CTCRW model)
 # --------------------------------------------------------------------
 set.seed(123)
 mi_fit <- crawl::crwMLE(
@@ -67,7 +67,8 @@ mi_fit <- crawl::crwMLE(
   initialSANN=list(maxit=250, temp=10, trace=1, REPORT=10))
 
 
-# Create simulation object for multiple imputation
+# 3) Create simulation object for multiple imputation
+# ---------------------------------------------------------------------
 set.seed(123)
 temp_dat %>% mutate(
   idx = (!haul & minute(GMT)%in%c(0, 20, 40))
@@ -108,7 +109,7 @@ for(i in 1:P){
 # save glm_data
  write.csv(glm_data,'glm.data_SSL-14809.csv',row.names=FALSE)
 
-#fit GLM
+# fit GLM
 fit <- glm(z~bathy_grad+slope_grad+d2site_grad+d2shelf_grad+
              bathy_loc+slope_loc+d2site_loc+d2shelf_loc,
            weights=rep(1/P,nrow(glm_data)),family="poisson",
@@ -131,7 +132,7 @@ UD.rast=land
 values(UD.rast) <- pi
 plot(log(UD.rast))
 
-# to view UD in ggplot
+# to view UD in ggplot2
 ud1df <- as.data.frame(raster::rasterToPoints(UD.rast)); names(ud1df) <- c('x','y','Density')
 ud1 <-  ggplot(ud1df,aes(x/1000,y/1000)) + geom_raster(aes(fill=log(Density))) + coord_equal() +
   scale_fill_gradientn(colours=viridis(100))+
